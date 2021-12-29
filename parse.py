@@ -1,9 +1,10 @@
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from collections import defaultdict
+from selenium.webdriver.firefox.options import Options
+
 import os
 import json
-import wget
 import csv
 import re
 
@@ -12,7 +13,7 @@ class Scraper():
         self.product_link_list = []
         self.image_links = {}
         self.prod_details_map = {}
-        self.prod_details_map_fields = ['Product Name', 'SKU', 'M.R.P.', 'Price', 'Description', 'Availability', 'Images']
+        self.prod_details_map_fields = ['Product Name', 'SKU', 'M.R.P.', 'Price', 'Description', 'Category', 'Availability', 'Images']
         self.product_links_cache = set()
 
     def get_individual_product(self, url):
@@ -69,13 +70,25 @@ class Scraper():
         for field in self.prod_details_map_fields:
             if field not in data:
                 data[field] = ""
+
+        # get category:
+        crumbs = soup.find("ul", class_="breadcrumb")
+        breadcrumb = ""
+        for li in crumbs:
+            if li.text and not li.text.isspace():
+                breadcrumb += li.text + " -> "
+        breadcrumb = breadcrumb[:-4]
+
         data['Product Name'] = prod
         data['Description'] = prod_description.strip()
         data['Images'] = '\n'.join(self.image_links[prod]).strip()
+        data['Category'] = breadcrumb
         self.prod_details_map[prod] = data
 
     def get_products(self):
-        self.browser=webdriver.Firefox()
+        options = Options()
+        options.headless = True
+        self.browser=webdriver.Firefox(options=options)
         with open('start_url.list', 'r') as start_urls_file:
             start_urls_list = start_urls_file.readlines()
         with open('products_link.list', 'r') as prod_link_list_file:
