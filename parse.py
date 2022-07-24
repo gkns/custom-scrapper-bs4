@@ -1,3 +1,7 @@
+# To people having a look, Ignore the identation in this file,
+# I know it doesn't look the best,
+# But this is a quick and dirty script to get the job done.
+
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from collections import defaultdict
